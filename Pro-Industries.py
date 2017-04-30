@@ -1,28 +1,17 @@
-import sys
 import test
-import os
+import filesSupport as fs
 import tkinter as tk
 import tkinter.messagebox
 import tkinter.ttk as ttk
 import machines
 import winsound
+import pronostics as pr
 from PIL import ImageTk, Image
 
 """
 Main module for the Pro-Industries Software.
 """
-
-
-def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
-
+print(pr.findOptimalAlpha(pr.readData(fs.resource_path("csvTest.csv"))))
 
 class Application(tk.Frame):
 
@@ -31,8 +20,8 @@ class Application(tk.Frame):
     titleMod2 = title + " Módulo 2: Plan Maestro de Producción"
     titleMod3 = title + " Módulo 3: Estructura de Producto"
     titleMod4 = title + " Módulo 4: Demanda y Combinación de Productos Óptima"
-    iconPath = resource_path("iconExe.ico")
-    logoPath = resource_path("Settings.png")
+    iconPath = fs.resource_path("iconExe.ico")
+    logoPath = fs.resource_path("Settings.png")
     autor1 = "Luis Ernesto Perafan Chacón"
     autor2 = "Sergio Cordoba"
     versionNumber = "1.0"
@@ -53,9 +42,11 @@ class Application(tk.Frame):
         h = toplevel.winfo_screenheight()
         size = tuple(int(_) for _ in toplevel.geometry().split('+')[0].split('x'))
         x = w / 2 - size[0] / 2
-        y = 0
+        y = h / 2 - size[1] / 2
         if(dialog):
             y = h / 2 - size[1] / 2
+        else:
+            y = y - 40
         toplevel.geometry("%dx%d+%d+%d" % (size + (x, y)))
 
     def createWidgets(self):
@@ -103,7 +94,7 @@ class Application(tk.Frame):
         self.master.config(menu=self.menubar)
 
     def open_about(self):
-        winsound.PlaySound(resource_path('shingeki-no-kyojin-the-armored.wav'), winsound.SND_ALIAS | winsound.SND_ASYNC)
+        winsound.PlaySound(fs.resource_path('shingeki-no-kyojin-the-armored.wav'), winsound.SND_ALIAS | winsound.SND_ASYNC)
         tk.messagebox.showinfo("Acerca de","Desarrollado por:\n\n" + self.autor1 + "\n\ny\n\n" + self.autor2 + "\n\nVersión "+ self.versionNumber)
         winsound.PlaySound(None, winsound.SND_ALIAS | winsound.SND_ASYNC)
 
