@@ -5,6 +5,7 @@ import tkinter as tk
 import tkinter.messagebox
 import tkinter.ttk as ttk
 import machines
+import winsound
 from PIL import ImageTk, Image
 
 """
@@ -102,7 +103,9 @@ class Application(tk.Frame):
         self.master.config(menu=self.menubar)
 
     def open_about(self):
+        winsound.PlaySound(resource_path('shingeki-no-kyojin-the-armored.wav'), winsound.SND_ALIAS | winsound.SND_ASYNC)
         tk.messagebox.showinfo("Acerca de","Desarrollado por:\n\n" + self.autor1 + "\n\ny\n\n" + self.autor2 + "\n\nVersión "+ self.versionNumber)
+        winsound.PlaySound(None, winsound.SND_ALIAS | winsound.SND_ASYNC)
 
     def initiateModule(self,modNumber):
         if(modNumber == 1):
