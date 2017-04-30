@@ -1,8 +1,10 @@
 import sys
+import test
 import os
 import tkinter as tk
 import tkinter.messagebox
 import tkinter.ttk as ttk
+import machines
 from PIL import ImageTk, Image
 
 """
@@ -40,7 +42,7 @@ class Application(tk.Frame):
         self.master.wm_title(self.title)
         self.master.iconbitmap(self.iconPath)
         self.master.minsize(400, 600)
-        self.create_widgets()
+        self.createWidgets()
         self.center(master)
         self.pack()
 
@@ -55,7 +57,7 @@ class Application(tk.Frame):
             y = h / 2 - size[1] / 2
         toplevel.geometry("%dx%d+%d+%d" % (size + (x, y)))
 
-    def create_widgets(self):
+    def createWidgets(self):
         # Welcome text
         self.hi_there = tk.Label(self, font="size 16")
         self.hi_there["text"] = "Bienvenido a\n" + self.title
@@ -77,10 +79,22 @@ class Application(tk.Frame):
         ttk.Separator(self).pack(side="top", fill="both",pady=20)
 
         # Create Button Options
-        self.button1 = tk.Button(self, text="Módulo 1:\nPlaneación agregada", command=lambda: self.initiateModule(1)).pack(side="top",fill="both",pady=10)
-        self.button2 = tk.Button(self, text="Módulo 2:\nPlan Maestro de Producción",command=lambda: self.initiateModule(2)).pack(side="top",fill="both",pady=10)
-        self.button3 = tk.Button(self, text="Módulo 3:\nEstructura de producto",command=lambda: self.initiateModule(3)).pack(side="top",fill="both",pady=10)
-        self.button4 = tk.Button(self, text="Módulo 4:\nDemanda y Combinación de Productos Óptima",command=lambda: self.initiateModule(4)).pack(side="top",pady=10)
+        self.button1 = tk.Button(
+            self, text="Módulo 1:\nPlaneación agregada",
+            command=lambda: self.initiateModule(1)).pack(
+            side="top", fill="both", pady=10)
+        self.button2 = tk.Button(
+            self, text="Módulo 2:\nPlan Maestro de Producción",
+            command=lambda: self.initiateModule(2)).pack(
+            side="top", fill="both", pady=10)
+        self.button3 = tk.Button(
+            self, text="Módulo 3:\nEstructura de producto",
+            command=lambda: self.initiateModule(3)).pack(
+            side="top", fill="both", pady=10)
+        self.button4 = tk.Button(
+            self, text="Módulo 4:\nDemanda y Combinación de Productos Óptima",
+            command=lambda: self.initiateModule(4)).pack(
+            side="top", pady=10)
 
         # Menubar creation
         self.menubar = tk.Menu(self.master)
@@ -98,10 +112,11 @@ class Application(tk.Frame):
         elif(modNumber == 3):
             height, width, title = 500, 500, self.titleMod3
         elif(modNumber == 4):
-            height, width, title = 500, 500, self.titleMod4
-        
+            height, width, title = 500, 700, self.titleMod4
+
         w = tk.Toplevel(self.master,height=height,width=width)
         w.title(title)
+        w.iconbitmap(self.iconPath)
         w.withdraw()
         w.grab_set()
         w.focus_force()
@@ -110,6 +125,18 @@ class Application(tk.Frame):
         self.master.withdraw()
         self.wait_window(w)
         self.master.deiconify()
+        self.createModuleWidgets(w,modNumber)
+
+    def createModuleWidgets(self, module, modNumber):
+        if(modNumber==1):
+            pass
+        elif(modNumber==2):
+            pass
+        elif(modNumber==3):
+            pass
+        elif(modNumber==4):
+            pass
+        pass
 
 
 
