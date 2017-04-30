@@ -11,7 +11,7 @@ from PIL import ImageTk, Image
 """
 Main module for the Pro-Industries Software.
 """
-print(pr.findOptimalAlpha(pr.readData(fs.resource_path("csvTest.csv"))))
+pr.genGraph(pr.readData(fs.resource_path("csvTest.csv")))
 
 class Application(tk.Frame):
 
