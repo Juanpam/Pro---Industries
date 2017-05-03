@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib
 from scipy.optimize import minimize
 import numpy as np
 import csv
@@ -7,7 +8,6 @@ import random
 """
 Module for the pronostics definitions and calculations
 """
-
 def readData(filePath):
     data = []
     with open(filePath,newline="") as f:
@@ -59,17 +59,21 @@ def findOptimalAlpha(data, weeks=12, alpha = random.triangular()):
     return (minimize(func, [alpha]).x)
 
 def genGraph(data, weeks=12, alpha = random.triangular()):
-    pronostic=calcPronostic(data,alpha=findOptimalAlpha(data))
-    data=data[weeks:]
-    l1,=plt.plot(np.arange(12,12+len(data),1),data,label="Datos históricos")
-    l2,=plt.plot(np.arange(12,12+len(pronostic),1),pronostic,label="Pronóstico")
+    plt.clf()
+    pronostic=calcPronostic(data,alpha=alpha,weeks=weeks)
+    data=data[weeks-1:]
+    l1,=plt.plot(np.arange(weeks,weeks+len(data),1),data,label="Datos históricos Semanas: "+str(weeks))
+    l2,=plt.plot(np.arange(weeks,weeks+len(pronostic),1),pronostic,label="Pronóstico Alpha: "+str(alpha))
     plt.legend(handles=[l1, l2])
     plt.xlabel('Semanas')
     plt.ylabel('Demanda')
     plt.title('Pronostico de demanda vs datos reales')
     plt.grid(True)
-    plt.show()
+    plt.show(block=False)
 
+#genGraph(readData(("csvTest.csv")))
+#print("xD")
+#genGraph(readData(("csvTest.csv")))
 # t = np.arange(0.0, 2.0, 0.01)
 # s = 1 + np.sin(2*np.pi*t)
 # plt.plot(t, s)
