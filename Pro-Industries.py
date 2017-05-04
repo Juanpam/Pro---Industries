@@ -413,7 +413,7 @@ class module (tk.Frame):
             def createMachine():
                 self.createMachine(name.get(), duration.get(), disponibility.get(), quantity.get(),parentName.get())
                 updateCombo()
-                print(self.indexMachinesItems, "despues de crear")
+                #print(self.indexMachinesItems, "despues de crear")
 
             def updateCombo():
                 if(self.products):
@@ -470,7 +470,7 @@ class module (tk.Frame):
                         self.delElement(self.tree.get_children(i),True)
                         if(i in self.indexMachinesItems.keys()):
                             index = self.indexMachinesItems[i]
-                            print(i, "antes de morir")
+                            #print(i, "antes de morir")
                             self.machines.pop(index)
                             for j in self.indexMachinesItems.keys():
                                 if self.indexMachinesItems[j]>index:
@@ -484,7 +484,7 @@ class module (tk.Frame):
                                     self.indexProductsItems[j]=self.indexProductsItems[j]-1
                             self.indexProductsItems.pop(i)
                         #print(self.products, self.machines, "despues")
-                        print(i, "itemId")
+                        #print(i, "itemId")
                         self.updateProductTree("delete", "product", machine=mc.product(i, 0, 0))
         else:
             if(name and type(name) is tuple):
@@ -492,7 +492,7 @@ class module (tk.Frame):
                     self.delElement(self.tree.get_children(i),True)
                     if(i in self.indexMachinesItems.keys()):
                         index = self.indexMachinesItems[i]
-                        print(i, "antes de morir")
+                        #print(i, "antes de morir")
                         self.machines.pop(index)
                         for j in self.indexMachinesItems.keys():
                             if self.indexMachinesItems[j]>index:
@@ -534,16 +534,16 @@ class module (tk.Frame):
                 count = self.machines.count(machine)
                 #print(count,"count")
                 if(count>1):
-                    print(self.tree.get_children(), "items arbol")
-                    print(machine.name+str(count), "id")
-                    print(parentId, "parentId")
+                    #print(self.tree.get_children(), "items arbol")
+                    #print(machine.name+str(count), "id")
+                   # print(parentId, "parentId")
                     self.tree.insert(parentId,"end", machine.name+str(count),text=machine.name, values=("", "", machine.duration, machine.disponibility, machine.quantity))
                 else:
                     self.tree.insert(parentId,"end", machine.name,text=machine.name, values=("", "", machine.duration, machine.disponibility, machine.quantity))
         elif(action=="delete"):
                 #print("deleting")
                 self.tree.delete(machine.name)
-        print(self.indexMachinesItems,self.indexProductsItems,"despues de cualquier modificacion")
+        #print(self.indexMachinesItems,self.indexProductsItems,"despues de cualquier modificacion")
 
 
     def genGraph(self,path):

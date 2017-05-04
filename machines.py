@@ -180,32 +180,32 @@ def optimalCombination(*products):
 
 
 
-p = product("p", 100, 90)
-q = product("q", 50, 100)
-p.addRawMaterial("mp1", 20)
-p.addRawMaterial("mp2", 20)
-p.addRawMaterial("adicional", 5)
-q.addRawMaterial("mp2", 20)
-q.addRawMaterial("mp3", 20)
+# p = product("p", 100, 90)
+# q = product("q", 50, 100)
+# p.addRawMaterial("mp1", 20)
+# p.addRawMaterial("mp2", 20)
+# p.addRawMaterial("adicional", 5)
+# q.addRawMaterial("mp2", 20)
+# q.addRawMaterial("mp3", 20)
 
 
 
-a = machine("a", 15, 2400)
-a2 = machine("a", 10, 2400)
-b = machine("b", 15, 2400)
-b2 = machine("b", 15, 2400)
-c = machine("c", 10, 2400)
-c2 = machine("c", 5, 2400)
-d = machine("d", 10, 2400)
-d2 = machine("d", 5, 2400)
+# a = machine("a", 15, 2400)
+# a2 = machine("a", 10, 2400)
+# b = machine("b", 15, 2400)
+# b2 = machine("b", 15, 2400)
+# c = machine("c", 10, 2400)
+# c2 = machine("c", 5, 2400)
+# d = machine("d", 10, 2400)
+# d2 = machine("d", 5, 2400)
 
-p.addChildren(d.addChildren(c.addChildren(a)).addChildren(c2.addChildren(b)))
-q.addChildren(d2.addChildren(c2).addChildren(b2.addChildren(a2)))
-print(productsPercTime(p,q))
-print(bottleNeck(p,q),"lala")
-print(profitableTime(p,q))
-print(optimalProduct(p,q))
-print(optimalCombination(p,q))
+# p.addChildren(d.addChildren(c.addChildren(a)).addChildren(c2.addChildren(b)))
+# q.addChildren(d2.addChildren(c2).addChildren(b2.addChildren(a2)))
+# print(productsPercTime(p,q))
+# print(bottleNeck(p,q),"lala")
+# print(profitableTime(p,q))
+# print(optimalProduct(p,q))
+# print(optimalCombination(p,q))
 
 
 
