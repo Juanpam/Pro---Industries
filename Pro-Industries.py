@@ -1,6 +1,6 @@
 import test
 import filesSupport as fs
-import machines
+import machines as mc
 import winsound
 import pronostics as pr
 import tkinter as tk
@@ -108,7 +108,7 @@ class Application(tk.Frame):
         elif(modNumber == 3):
             height, width, title = 500, 500, self.titleMod3
         elif(modNumber == 4):
-            height, width, title = 500, 700, self.titleMod4
+            height, width, title = 500, 900, self.titleMod4
 
         w = tk.Toplevel(self.master,height=height,width=width)
         w.title(title)
@@ -161,7 +161,7 @@ class module (tk.Frame):
             self.columnconfigure(0,weight=1)
             self.columnconfigure(1,weight=1)
             self.rowconfigure(0,weight=1)
-            for i in range(1,10):
+            for i in range(1,12):
                 self.rowconfigure(i,weight=1)
             nameLabel.grid(row=0,column=0,sticky=tk.W+tk.E+tk.N+tk.S,columnspan=2,rowspan=2)
 
@@ -211,7 +211,7 @@ class module (tk.Frame):
             #MPS 
 
             tk.Label(self,text="Lote de producción: ").grid(row=7, column=0)
-            self.MPS = tk.IntVar(value=100)
+            self.MPS = tk.IntVar(value=1000)
             tk.Entry(self,textvariable=self.MPS).grid(row=7, column=1,sticky=tk.W+tk.E)
 
             #Alpha entry
@@ -246,43 +246,305 @@ class module (tk.Frame):
         elif(modNumber==3):
             pass
         elif(modNumber==4):
+            self.products = []
+            self.machines = []
+            self.indexProductsItems = {}
+            self.indexMachinesItems = {}
 
             #Conf of expansion
-            self.columnconfigure(0,weight=1,pad=20)
-            self.columnconfigure(1,weight=1,pad=20)
-            #self.rowconfigure(0,weight=1,pad=400)
+            self.columnconfigure(0,weight=2)
+            self.columnconfigure(1,weight=1)
+            #self.rowconfigure(0,weight=1)
+            #self.rowconfigure(1,weight=1)
+            self.rowconfigure(2,weight=1)
 
-            #Product
-            addProductButton = tk.Button(
-            self, text="Seleccione un producto: ",command=lambda : combo.configure(values=combo.cget("values")+("extra",)))
-            addProductButton.grid(row=0,sticky=tk.N+tk.E+tk.S+tk.W)
-            stringVar = tk.StringVar()
-            values=["Agregar producto..."]
-            combo = ttk.Combobox(self,textvariable=stringVar,state='readonly')
-            combo['values']=values
-            combo.grid(row=0,column=1,sticky=tk.N+tk.E+tk.S+tk.W)
-            combo.bind('<<ComboboxSelected>>', lambda x : self.funcioncita(combo.get()))
+            #Product layout
+
+            confTreeGrid = {"sticky": tk.N+tk.E+tk.S+tk.W}
+            confButtonGrid = {"sticky": tk.N+tk.S}
+
+            #Add element   
+            addElementButton = tk.Button(
+            self, text="Agregar elemento",command=self.addElement)
+            addElementButton.grid(confTreeGrid,row=0,column=0)
+
+            #Delete element
+            delElementButton = tk.Button(
+            self, text="Borrar elemento",command=lambda : self.delElement(self.tree.selection()))
+            delElementButton.grid(confTreeGrid,row=1,column=0)
+
+            #Optimal combination
+            optCombButton = tk.Button(
+            self, text="Encontrar Combinación Optima de Producto",command= lambda: showOptimalComb())
+            optCombButton.grid(confTreeGrid,row=0,column=1,rowspan=2)
+
+            #Bottle Neck
+            # bottleNeckButton = tk.Button(
+            # self, text="Encontrar Cuello de Botella",command=lambda : 5)
+            # bottleNeckButton.grid(confTreeGrid,row=1,column=1)
+
+            def showOptimalComb():
+                if(len(self.products)>1):
+                    w=self.modalDialog("Combinacion optima")
+                    optimal = mc.optimalCombination(*self.products)
+                    for i,p in enumerate(self.products):
+                        tk.Label(w,text="Cantidad de producto "+p.name+": "+str(optimal[i]),padx=40).grid(row=i)
+                    self.center(w,True)
+                    w.wait_window()
+                else:
+                    tk.messagebox.showerror("Ingrese más productos", "Por favor ingrese al menos 2 productos para realizar el cálculo")
+
+            def showBottleNeck():
+                if(len(self.products)>1):
+                    w=self.modalDialog("Combinacion optima")
+                    optimal = mc.optimalCombination(*self.products)
+                    for i,p in enumerate(self.products):
+                        tk.Label(w,text="Cantidad de producto "+p.name+": "+str(optimal[i]),padx=40).grid(row=i)
+                    self.center(w,True)
+                    w.wait_window()
+                else:
+                    tk.messagebox.showerror("Ingrese más productos", "Por favor ingrese al menos 2 productos para realizar el cálculo")
 
             #Tree view
+            columns = ["Demanda","PPU","Duracion","Disponibilidad","Cantidad"]
+            self.tree = ttk.Treeview(self,columns=columns)
 
-            tree = ttk.Treeview(self)
-            # Inserted at the root, program chooses id:
-            tree.insert('', 'end', 'widgets', text='Widget Tour')
-             
-            # Same thing, but inserted as first child:
-            tree.insert('', 0, 'gallery', text='Applications')
+            for i in columns:
+                self.tree.column(i,width=50)
+                self.tree.heading(i,text=i)
+            self.tree.heading("#0",text="Nombre del producto/máquina")
+            
 
-            # Treeview chooses the id:
-            id = tree.insert('', 'end', text='Tutorial')
-
-            # Inserted underneath an existing node:
-            tree.insert('widgets', 'end', text='Canvas')
-            tree.insert(id, 'end', text='Tree')
-            tree.grid(row=1,sticky=tk.N+tk.E+tk.S+tk.W)
+            self.tree.grid(confTreeGrid,row=2,column=0,columnspan=2)
+            self.winfo_toplevel().geometry("")
 
 
 
         pass
+
+    def addElement(self):
+        """
+        Adds element to the list of products and machines
+        """
+        #Create modal dialog
+        w = self.modalDialog("Agregar elemento")
+
+        #Conf expansion
+
+        w.columnconfigure(0,weight=1)
+        w.columnconfigure(1,weight=1)
+
+        tk.Label(w,text="Tipo de elemento:").grid(row=0,column=0,columnspan=2,sticky=tk.N+tk.S+tk.W+tk.E,pady=10)
+
+        kind = tk.StringVar(value="Producto")
+        confLabel = {"column":0,"sticky":tk.E+tk.W,"pady":10}
+        window=w
+        w=tk.Frame(window)
+        tk.Radiobutton(window,text="Producto",variable=kind,value="Producto", command=lambda: self.changeType(w,kind)).grid(confLabel,row=1,column=0)
+        tk.Radiobutton(window,text="Maquina",variable=kind,value="Máquina",command=lambda: self.changeType(w,kind)).grid(confLabel,row=1,column=1)
+        self.changeType(w, kind)
+        
+        w.grid(row=2,column=0,columnspan=2,padx=10,pady=10)
+        self.center(window,True)
+        window.wait_window()
+
+    def changeType(self,w,kind):
+        """
+        Accomodates the frame entries and labels
+        """
+        #print("Change of type!")
+        for i in w.grid_slaves():
+            i.destroy()
+        confLabel = {"column":0,"sticky":tk.E+tk.W,"pady":10}
+        confEntry = {"column":1,"sticky":tk.E+tk.W,"pady":10}
+
+        name = tk.StringVar()
+        tk.Label(w,text="Nombre del elemento: ").grid(confLabel,row=0)
+        tk.Entry(w,textvariable=name).grid(confEntry,row=0)
+        if(kind.get()=="Producto"):
+            tk.Label(w,text="Demanda: ").grid(confLabel,row=1)
+            tk.Label(w,text="Precio por unidad: ").grid(confLabel,row=2)
+
+            
+            #In case of a product
+            demand = tk.IntVar()
+            priceUnit = tk.IntVar()
+            tk.Entry(w,textvariable=demand).grid(confEntry,row=1)
+            tk.Entry(w,textvariable=priceUnit).grid(confEntry,row=2)
+
+            tk.Button(w,text="Crear", command = lambda: self.createProduct(name.get(), demand.get(), priceUnit.get()) ).grid(confLabel,row=3)
+            tk.Button(w,text="Cancelar",command=w.winfo_toplevel().destroy).grid(confEntry,row=3)
+
+        elif(kind.get()=="Máquina"):
+            tk.Label(w,text="Duracion: ").grid(confLabel,row=1)
+            tk.Label(w,text="Disponibilidad: ").grid(confLabel,row=2)
+            tk.Label(w,text="Cantidad: ").grid(confLabel,row=3)
+
+            #In case of a machine
+            duration = tk.IntVar()
+            disponibility = tk.IntVar(value=2400)
+            quantity = tk.IntVar(value=1)
+            tk.Entry(w,textvariable=duration).grid(confEntry,row=1)
+            tk.Entry(w,textvariable=disponibility).grid(confEntry,row=2)
+            tk.Entry(w,textvariable=quantity).grid(confEntry,row=3)
+
+
+            #Combo for the parent
+            tk.Label(w,text="Padre: ").grid(confLabel,row=4)
+            parentName = tk.StringVar()
+            combo = ttk.Combobox(w,textvariable=parentName,state='readonly',width=30,justify=tk.CENTER)
+            if(self.products):
+                values=[i.name for i in self.products]
+                for i,v in enumerate(values):
+                    self.indexProductsItems[v]=i
+                if(self.machines):
+                    for i,v in enumerate(self.machines):
+                        value=v.name
+                        if(v.name in values):
+                            value=value+str(values.count(v.name)+1)
+                        values.append(value)
+                        self.indexMachinesItems[value]=i
+                combo['values']=values
+            else:
+                combo['values']=["Agrega primero un producto"]
+            combo.grid(confEntry,row=4)
+            # combo.bind('<<ComboboxSelected>>', lambda x : self.funcioncita(combo.get()))
+
+            def createMachine():
+                self.createMachine(name.get(), duration.get(), disponibility.get(), quantity.get(),parentName.get())
+                updateCombo()
+                print(self.indexMachinesItems, "despues de crear")
+
+            def updateCombo():
+                if(self.products):
+                    values=[i.name for i in self.products]
+                    for i,v in enumerate(values):
+                        self.indexProductsItems[v]=i
+                    if(self.machines):
+                        for i,v in enumerate(self.machines):
+                            value=v.name
+                            if(v.name in values):
+                                value=value+str(values.count(v.name)+1)
+                            values.append(value)
+                            self.indexMachinesItems[value]=i
+                    combo['values']=values
+                else:
+                    combo['values']=["Agrega primero un producto"]
+
+
+            tk.Button(w,text="Crear",command = createMachine).grid(confLabel,row=5)
+            tk.Button(w,text="Cancelar",command=w.winfo_toplevel().destroy).grid(confEntry,row=5)
+
+        #Adjust window to the new contents
+        w.winfo_toplevel().geometry("")
+
+        
+
+
+    def modalDialog(self,title):
+        w = tk.Toplevel(self)
+        w.transient(self)
+        w.grab_set()
+        #w.resizable(False,False)
+        w.wm_title(title)
+        w.iconbitmap(self.iconPath)
+        return w
+
+    def createProduct(self,name,demand,priceUnit):
+        product=mc.product(name, demand, priceUnit)
+        if(product not in self.products):
+            self.products.append(product)
+            self.indexProductsItems[name]=len(self.products)-1
+            self.updateProductTree("create","product",machine=product)
+        else:
+            tk.messagebox.showerror("Elemento ya existente","El producto "+name+" ya existe")
+
+    def delElement(self,name,recursive=False):
+        #print(name, recursive)
+        if(not recursive):
+            #print(name,type(name))
+            if(name and type(name) is tuple):
+                #print(self.products, self.machines, "antes")
+                for i in name:
+                    if(self.tree.exists(i)):
+                        self.delElement(self.tree.get_children(i),True)
+                        if(i in self.indexMachinesItems.keys()):
+                            index = self.indexMachinesItems[i]
+                            print(i, "antes de morir")
+                            self.machines.pop(index)
+                            for j in self.indexMachinesItems.keys():
+                                if self.indexMachinesItems[j]>index:
+                                    self.indexMachinesItems[j]=self.indexMachinesItems[j]-1
+                            self.indexMachinesItems.pop(i)
+                        elif(i in self.indexProductsItems.keys()):
+                            index = self.indexProductsItems[i]
+                            self.products.pop(index)
+                            for j in self.indexProductsItems.keys():
+                                if self.indexProductsItems[j]>index:
+                                    self.indexProductsItems[j]=self.indexProductsItems[j]-1
+                            self.indexProductsItems.pop(i)
+                        #print(self.products, self.machines, "despues")
+                        print(i, "itemId")
+                        self.updateProductTree("delete", "product", machine=mc.product(i, 0, 0))
+        else:
+            if(name and type(name) is tuple):
+                for i in name:
+                    self.delElement(self.tree.get_children(i),True)
+                    if(i in self.indexMachinesItems.keys()):
+                        index = self.indexMachinesItems[i]
+                        print(i, "antes de morir")
+                        self.machines.pop(index)
+                        for j in self.indexMachinesItems.keys():
+                            if self.indexMachinesItems[j]>index:
+                                self.indexMachinesItems[j]=self.indexMachinesItems[j]-1
+                        self.indexMachinesItems.pop(i)
+                    elif(i in self.indexProductsItems.keys()):
+                        index = self.indexProductsItems[i]
+                        self.products.pop(index)
+                        for j in self.indexProductsItems.keys():
+                            if self.indexProductsItems[j]>index:
+                                self.indexProductsItems[j]=self.indexProductsItems[j]-1
+                        self.indexProductsItems.pop(i)
+
+
+
+
+    def createMachine(self,name,duration,disponibility,quantity,parentIndexItem):
+        machine=mc.machine(name, duration, disponibility,quantity)
+        self.machines.append(machine)
+        if(parentIndexItem in self.indexProductsItems.keys()):
+            parent=self.products[self.indexProductsItems[parentIndexItem]]
+        elif(parentIndexItem in self.indexMachinesItems.keys()):
+            parent=self.machines[self.indexMachinesItems[parentIndexItem]]
+        self.updateProductTree("create","machine",parentIndexItem,machine)
+        parent.addChildren(machine)
+        
+
+
+    def updateProductTree(self,action,kind,parentId="",machine=None):
+        """
+        Updates the tree based on the products and machines lists
+        """
+        
+        if(action=="create"):
+            #print("inserting")
+            if(kind=="product"):
+                self.tree.insert("", "end", machine.name,text=machine.name, values=(machine.demand,machine.priceUnit))
+            if(kind=="machine"):
+                count = self.machines.count(machine)
+                #print(count,"count")
+                if(count>1):
+                    print(self.tree.get_children(), "items arbol")
+                    print(machine.name+str(count), "id")
+                    print(parentId, "parentId")
+                    self.tree.insert(parentId,"end", machine.name+str(count),text=machine.name, values=("", "", machine.duration, machine.disponibility, machine.quantity))
+                else:
+                    self.tree.insert(parentId,"end", machine.name,text=machine.name, values=("", "", machine.duration, machine.disponibility, machine.quantity))
+        elif(action=="delete"):
+                #print("deleting")
+                self.tree.delete(machine.name)
+        print(self.indexMachinesItems,self.indexProductsItems,"despues de cualquier modificacion")
+
 
     def genGraph(self,path):
         if(path):
@@ -300,9 +562,6 @@ class module (tk.Frame):
         else:
             tk.messagebox.showerror("Error","Por favor, cargue un archivo primero",parent=self)
 
-    def funcioncita(self, option):
-        if(option=="Agregar producto..."):
-            tk.messagebox.showinfo("CREAR PRODUCTO","CREANDO PRODUCTO")
 
     def getOptAlpha(self,path):
         if(path):
@@ -323,16 +582,9 @@ class module (tk.Frame):
 
     def showMPS(self,path):
         if(path):
-
-            conf = {"borderwidth": 1 , "relief": tk.SOLID, "padx": 30, "pady": 20}
+            conf = {"borderwidth": 1 , "relief": tk.SOLID, "padx": 10, "pady": 5}
             #Create modal dialog
-            w = tk.Toplevel(self)
-            w.transient(self)
-            w.grab_set()
-            #w.resizable(True,True)
-            w.wm_title("Plan Maestro de Produccion")
-            w.iconbitmap(self.iconPath)
-
+            w = self.modalDialog("Plan Maestro de Produccion")
             #Data
             data=pr.readData((fs.resource_path(path)))
 
@@ -360,7 +612,7 @@ class module (tk.Frame):
 
 
             #New config
-            conf = {"padx": 30, "pady": 20}
+            conf = {"padx": 20, "pady": 10}
 
             #Pronostic and orders
             pronostic = pr.calcPronostic(data,weeks=self.weeks.get(),alpha=self.alpha.get())
@@ -373,9 +625,6 @@ class module (tk.Frame):
                 tk.Label(w,text=str(MPS[i]), cnf=conf).grid(row=5,column=i+1,sticky=tk.W+tk.E+tk.N+tk.S)
                 tk.Label(w,text=str(DPP[i]), cnf=conf).grid(row=6,column=i+1,sticky=tk.W+tk.E+tk.N+tk.S)
 
-
-            
-            
             self.center(w,True)
             w.wait_window()
         else:
