@@ -61,15 +61,46 @@ def findOptimalAlpha(data, weeks=12, alpha = random.triangular()):
 def genGraph(data, weeks=12, alpha = random.triangular()):
     plt.clf()
     pronostic=calcPronostic(data,alpha=alpha,weeks=weeks)
-    data=data[weeks-1:]
-    l1,=plt.plot(np.arange(weeks,weeks+len(data),1),data,label="Datos históricos Semanas: "+str(weeks))
-    l2,=plt.plot(np.arange(weeks,weeks+len(pronostic),1),pronostic,label="Pronóstico Alpha: "+str(alpha))
+    data=data[weeks:]
+    pronostic=pronostic[:-1]
+    l1,=plt.plot(np.arange(weeks+1,weeks+len(data)+1,1),data,label="Datos históricos Semanas: "+str(weeks))
+    l2,=plt.plot(np.arange(weeks+1,weeks+len(pronostic)+1,1),pronostic,label="Pronóstico Alpha: "+str(alpha))
     plt.legend(handles=[l1, l2])
     plt.xlabel('Semanas')
     plt.ylabel('Demanda')
     plt.title('Pronostico de demanda vs datos reales')
     plt.grid(True)
     plt.show(block=False)
+
+def getInventory(data, MPS, initial=0, pronostic=None, weeks=12, alpha = random.triangular()):
+    if(not pronostic):
+        pronostic = calcPronostic(data, weeks, alpha)
+    pronostic = pronostic[:-1]
+    pronostic = [int(x) for x in pronostic]
+    data = [int(x) for x in data]
+    data = data[weeks:]
+    lastInventory = initial
+    inventories = []
+    MPSList = []
+    DPP = []
+    for i in range(len(pronostic)):
+        maxi = max(pronostic[i],data[i])
+        if(maxi > lastInventory):
+            actualMPS = MPS
+        else:
+            actualMPS = 0
+
+        if(actualMPS == 0): #DPP
+            DPP.append(0)
+        else:
+            if(i==0): #First week
+                DPP.append((lastInventory + actualMPS)-data[i])
+            else:
+                DPP.append(actualMPS - data[i])
+        inventories.append((lastInventory + actualMPS) - maxi)
+        MPSList.append(actualMPS)
+        lastInventory=inventories[-1]
+    return (inventories, MPSList, DPP)
 
 #genGraph(readData(("csvTest.csv")))
 #print("xD")

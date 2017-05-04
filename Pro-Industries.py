@@ -4,6 +4,7 @@ import machines
 import winsound
 import pronostics as pr
 import tkinter as tk
+import math as m
 import tkinter.messagebox
 import tkinter.ttk as ttk
 
@@ -132,7 +133,7 @@ class module (tk.Frame):
 
     def __init__(self, master, height, width, title, modNumber):
         super().__init__(master)
-        #master.resizable(False,False)
+        master.resizable(False,False)
         self.master.wm_title(title)
         self.master.iconbitmap(self.iconPath)
         self.createWidgets(modNumber)
@@ -164,61 +165,82 @@ class module (tk.Frame):
                 self.rowconfigure(i,weight=1)
             nameLabel.grid(row=0,column=0,sticky=tk.W+tk.E+tk.N+tk.S,columnspan=2,rowspan=2)
 
+            #Show MPS
+
+            showMPS = tk.Button(
+            self, text="Mostrar Plan Maestro de Producción",
+            command = lambda : self.showMPS(self.filePath))
+            showMPS.grid(row=2,sticky=tk.W+tk.E+tk.S+tk.N,columnspan=2)
+
 
             loadData = tk.Button(
             self, text="Cargar datos históricos",
             command = lambda : self.openFile())
-            loadData.grid(row=2,sticky=tk.W+tk.E+tk.S+tk.N)
+            loadData.grid(row=3,sticky=tk.W+tk.E+tk.S+tk.N)
 
             
             genPronostic = tk.Button(
             self, text="Graficar pronostico",
             command=lambda : self.genGraph(self.filePath))
-            genPronostic.grid(row=2,column=1,sticky=tk.W+tk.E+tk.N+tk.S)
+            genPronostic.grid(row=3,column=1,sticky=tk.W+tk.E+tk.N+tk.S)
 
             doPronostic = tk.Button(
             self, text="Calcular Variables",
             command=lambda : self.doPronostic(self.filePath))
-            doPronostic.grid(row=3,column=1,sticky=tk.W+tk.E+tk.N+tk.S)
+            doPronostic.grid(row=4,column=1,sticky=tk.W+tk.E+tk.N+tk.S)
 
 
             optAlpha = tk.Button(
             self, text="Obtener Alpha óptimo",
             command=lambda : self.getOptAlpha(self.filePath))
-            optAlpha.grid(row=3,column=0,sticky=tk.W+tk.E+tk.N+tk.S)
+            optAlpha.grid(row=4,column=0,sticky=tk.W+tk.E+tk.N+tk.S)
 
             #Weeks entry
-            tk.Label(self,text="Semanas de historico: ").grid(row=4, column=0)
+            tk.Label(self,text="Semanas de historico: ").grid(row=5, column=0)
             self.weeks = tk.IntVar(value=12)
-            tk.Entry(self,textvariable=self.weeks).grid(row=4, column=1,sticky=tk.W+tk.E)
+            tk.Entry(self,textvariable=self.weeks).grid(row=5, column=1,sticky=tk.W+tk.E)
+
+
+            #Initial inventory
+
+            tk.Label(self,text="Inventario inicial: ").grid(row=6, column=0)
+            self.inventory = tk.IntVar(value=100)
+            tk.Entry(self,textvariable=self.inventory).grid(row=6, column=1,sticky=tk.W+tk.E)
+
+
+            #MPS 
+
+            tk.Label(self,text="Lote de producción: ").grid(row=7, column=0)
+            self.MPS = tk.IntVar(value=100)
+            tk.Entry(self,textvariable=self.MPS).grid(row=7, column=1,sticky=tk.W+tk.E)
 
             #Alpha entry
-            tk.Label(self,text="Valor de alpha: ").grid(row=5, column=0)
+            tk.Label(self,text="Valor de alpha: ").grid(row=8, column=0)
             self.alpha = tk.DoubleVar(value=0.5)
-            tk.Entry(self,textvariable=self.alpha).grid(row=5, column=1,sticky=tk.W+tk.E)
+            tk.Entry(self,textvariable=self.alpha).grid(row=8, column=1,sticky=tk.W+tk.E)
 
             #MAPE
-            tk.Label(self,text="MAPE: ").grid(row=6, column=0)
+            tk.Label(self,text="MAPE: ").grid(row=9, column=0)
             self.MAPE = tk.DoubleVar()
-            tk.Label(self,textvariable=self.MAPE).grid(row=6, column=1,sticky=tk.W+tk.E)
+            tk.Label(self,textvariable=self.MAPE).grid(row=9, column=1,sticky=tk.W+tk.E)
 
             #ECM
 
-            tk.Label(self,text="ECM: ").grid(row=7, column=0)
+            tk.Label(self,text="ECM: ").grid(row=10, column=0)
             self.ECM = tk.DoubleVar()
-            tk.Label(self,textvariable=self.ECM).grid(row=7, column=1,sticky=tk.W+tk.E)
+            tk.Label(self,textvariable=self.ECM).grid(row=10, column=1,sticky=tk.W+tk.E)
 
             #SD
 
-            tk.Label(self,text="Desviación estandar: ").grid(row=8, column=0)
+            tk.Label(self,text="Desviación estandar: ").grid(row=11, column=0)
             self.SD = tk.DoubleVar()
-            tk.Label(self,textvariable=self.SD).grid(row=8, column=1,sticky=tk.W+tk.E)
+            tk.Label(self,textvariable=self.SD).grid(row=11, column=1,sticky=tk.W+tk.E)
 
             #CVD
 
-            tk.Label(self,text="CVD: ").grid(row=9, column=0)
+            tk.Label(self,text="CVD: ").grid(row=12, column=0)
             self.CVD = tk.DoubleVar()
-            tk.Label(self,textvariable=self.CVD).grid(row=9, column=1,sticky=tk.W+tk.E)
+            tk.Label(self,textvariable=self.CVD).grid(row=12, column=1,sticky=tk.W+tk.E)
             
 
         elif(modNumber==3):
@@ -299,6 +321,65 @@ class module (tk.Frame):
             self.filePath=filePath
             self.fileName.set("Cargue un archivo porfavor")        
 
+    def showMPS(self,path):
+        if(path):
+
+            conf = {"borderwidth": 1 , "relief": tk.SOLID, "padx": 30, "pady": 20}
+            #Create modal dialog
+            w = tk.Toplevel(self)
+            w.transient(self)
+            w.grab_set()
+            #w.resizable(True,True)
+            w.wm_title("Plan Maestro de Produccion")
+            w.iconbitmap(self.iconPath)
+
+            #Data
+            data=pr.readData((fs.resource_path(path)))
+
+            weeksRemaining=len(data)-self.weeks.get()
+
+            #Create title
+            tk.Label(w,text="Semanas",cnf=conf).grid(row=0, column=1, columnspan=weeksRemaining+1, sticky=tk.W+tk.E+tk.N+tk.S)
+            
+            
+            #Enumerate weeks
+            for i in range(weeksRemaining):
+                w.columnconfigure(1+i,weight=2)
+                tk.Label(w,text=str(i+1+self.weeks.get()), cnf=conf).grid(row=1,column=1+i,sticky=tk.W+tk.E+tk.N+tk.S)
+
+            #First Column
+            tk.Label(w,text="Pronóstico", cnf=conf).grid(row=2, column=0, sticky=tk.W+tk.E+tk.N+tk.S)
+            tk.Label(w,text="Ordenes", cnf=conf).grid(row=3, column=0, sticky=tk.W+tk.E+tk.N+tk.S)
+            tk.Label(w,text="Inventario", cnf=conf).grid(row=4, column=0, sticky=tk.W+tk.E+tk.N+tk.S)
+            tk.Label(w,text="MPS", cnf=conf).grid(row=5, column=0, sticky=tk.W+tk.E+tk.N+tk.S)
+            tk.Label(w,text="DPP", cnf=conf).grid(row=6, column=0, sticky=tk.W+tk.E+tk.N+tk.S)
+
+            #Row adjust
+            for i in range(7):
+                w.rowconfigure(i,weight=1)
+
+
+            #New config
+            conf = {"padx": 30, "pady": 20}
+
+            #Pronostic and orders
+            pronostic = pr.calcPronostic(data,weeks=self.weeks.get(),alpha=self.alpha.get())
+            #Get inventories and stuff
+            inventories, MPS, DPP = pr.getInventory(data, self.MPS.get(), initial=self.inventory.get(), pronostic=pronostic, weeks=self.weeks.get(), alpha=self.alpha.get())
+            for i in range(len(pronostic)-1):
+                tk.Label(w,text=str(m.floor(pronostic[i])),cnf=conf).grid(row=2,column=i+1,sticky=tk.W+tk.E+tk.N+tk.S)
+                tk.Label(w,text=str(int(data[i+self.weeks.get()])),cnf=conf).grid(row=3,column=i+1,sticky=tk.W+tk.E+tk.N+tk.S)
+                tk.Label(w,text=str(inventories[i]), cnf=conf).grid(row=4,column=i+1,sticky=tk.W+tk.E+tk.N+tk.S)
+                tk.Label(w,text=str(MPS[i]), cnf=conf).grid(row=5,column=i+1,sticky=tk.W+tk.E+tk.N+tk.S)
+                tk.Label(w,text=str(DPP[i]), cnf=conf).grid(row=6,column=i+1,sticky=tk.W+tk.E+tk.N+tk.S)
+
+
+            
+            
+            self.center(w,True)
+            w.wait_window()
+        else:
+            tk.messagebox.showerror("Error","Por favor, cargue un archivo primero",parent=self)
 
 
 

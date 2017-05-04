@@ -1,8 +1,8 @@
 import tkinter as tk
 
-root = tk.Tk()
-main_frame = tk.Frame(root, border=3, relief=tk.GROOVE)
-main_frame.grid()
+main_frame = tk.Tk()
+#main_frame = tk.Frame(root, border=3, relief=tk.GROOVE)
+#main_frame.grid()
 
 for i in range(10):
 
@@ -31,4 +31,4 @@ for i in range(10):
             padx=20,
             pady=20,).grid()
 
-root.mainloop()
+main_frame.mainloop()
