@@ -245,7 +245,42 @@ class module (tk.Frame):
             
 
         elif(modNumber==3):
-            pass
+
+            self.materials=[]
+
+            #Conf of expansion
+            self.columnconfigure(0,weight=2)
+            self.columnconfigure(1,weight=1)
+            #self.rowconfigure(0,weight=1)
+            #self.rowconfigure(1,weight=1)
+            self.rowconfigure(2,weight=1)
+
+
+            #Product layout
+
+            confTreeGrid = {"sticky": tk.N+tk.E+tk.S+tk.W}
+            confButtonGrid = {"sticky": tk.N+tk.S}
+
+            #Add element   
+            addMaterialButton = tk.Button(
+            self, text="Agregar material",command=lambda :self.addMaterial)
+            addMaterialButton.grid(confTreeGrid,row=0,column=0)
+
+            #Delete element
+            delMaterialButton = tk.Button(
+            self, text="Borrar material seleccionado",command=lambda : self.delMaterial(self.tree.selection()))
+            delMaterialButton.grid(confTreeGrid,row=1,column=0)
+
+            #Net requirements button
+            netRButton = tk.Button(
+            self, text="Mostrar Requerimientos Netos de Materiales",command= lambda: 5)
+            netRButton.grid(confTreeGrid,row=0,column=1,rowspan=2)
+
+
+            def
+
+
+
         elif(modNumber==4):
             self.products = []
             self.machines = []
@@ -271,7 +306,7 @@ class module (tk.Frame):
 
             #Delete element
             delElementButton = tk.Button(
-            self, text="Borrar elemento",command=lambda : self.delElement(self.tree.selection()))
+            self, text="Borrar elemento seleccionado",command=lambda : self.delElement(self.tree.selection()))
             delElementButton.grid(confTreeGrid,row=1,column=0)
 
             #Optimal combination
@@ -295,16 +330,6 @@ class module (tk.Frame):
                 else:
                     tk.messagebox.showerror("Ingrese más productos", "Por favor ingrese al menos 2 productos para realizar el cálculo")
 
-            def showBottleNeck():
-                if(len(self.products)>1):
-                    w=self.modalDialog("Combinacion optima")
-                    optimal = mc.optimalCombination(*self.products)
-                    for i,p in enumerate(self.products):
-                        tk.Label(w,text="Cantidad a producir del producto "+p.name+": "+str(optimal[i]),padx=20,pady=20).grid(row=i)
-                    self.center(w,True)
-                    w.wait_window()
-                else:
-                    tk.messagebox.showerror("Ingrese más productos", "Por favor ingrese al menos 2 productos para realizar el cálculo")
 
             #Tree view
             columns = ["Demanda","PPU","Duracion","Disponibilidad","Cantidad"]
@@ -546,6 +571,8 @@ class module (tk.Frame):
                 self.tree.delete(machine.name)
         #print(self.indexMachinesItems,self.indexProductsItems,"despues de cualquier modificacion")
 
+    def updateMaterialTree:
+        pass
 
     def genGraph(self,path):
         if(path):
@@ -594,6 +621,7 @@ class module (tk.Frame):
             #Create title
             tk.Label(w,text="Semanas",cnf=conf).grid(row=0, column=1, columnspan=weeksRemaining+1, sticky=tk.W+tk.E+tk.N+tk.S)
             
+            tk.Label(w,text="Plan Maestro de Producción",cnf=conf).grid(row=0,column=0, rowspan=2,sticky=tk.W+tk.E+tk.N+tk.S)
             
             #Enumerate weeks
             for i in range(weeksRemaining):
