@@ -210,24 +210,24 @@ def optimalCombination(*products):
 
 
 
-# p = product("p", 110, 120)
-# q = product("q", 90, 110)
+p = product("p", 110, 120)
+q = product("q", 90, 110)
 
-# d = machine("d", 20, 2, 2400)
-# c = machine("c", 10, 2400)
-# b = machine("b", 20, 2400)
-# d2 = machine("d", 15, 2, 2400)
-# b2 = machine("b", 10, 2400)
-# a = machine("a", 10, 2400)
+d = machine("d", 20, 2, 2400)
+c = machine("c", 10, 2400)
+b = machine("b", 20, 2400)
+d2 = machine("d", 15, 2, 2400)
+b2 = machine("b", 10, 2400)
+a = machine("a", 10, 2400)
 
-# p.addChildren(d.addChildren(c.addChildren(b)))
+p.addChildren(d.addChildren(c.addChildren(b)))
 
 
 
-# q.addChildren(d2.addChildren(b2.addChildren(a).addChildren(c)))
-# print(q.calcUsedTimePercent())
+q.addChildren(d2.addChildren(b2.addChildren(a).addChildren(c)))
+print(q.calcUsedTimePercent())
 
-# z = product("z", 10, 400)
-# z.addChildren(b)
+z = product("z", 10, 400)
+z.addChildren(b)
 
-# print(optimalCombination(p))
+print(bottleNeck(p,q))

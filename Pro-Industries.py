@@ -1,6 +1,7 @@
 import test
 import filesSupport as fs
 import machines as mc
+import structure as st
 import winsound
 import pronostics as pr
 import tkinter as tk
@@ -275,7 +276,7 @@ class module (tk.Frame):
 
             #Optimal combination
             optCombButton = tk.Button(
-            self, text="Encontrar Combinación Optima de Producto",command= lambda: showOptimalComb())
+            self, text="Encontrar Combinación Optima de Productos",command= lambda: showOptimalComb())
             optCombButton.grid(confTreeGrid,row=0,column=1,rowspan=2)
 
             #Bottle Neck
@@ -299,7 +300,7 @@ class module (tk.Frame):
                     w=self.modalDialog("Combinacion optima")
                     optimal = mc.optimalCombination(*self.products)
                     for i,p in enumerate(self.products):
-                        tk.Label(w,text="Cantidad de producto "+p.name+": "+str(optimal[i]),padx=40).grid(row=i)
+                        tk.Label(w,text="Cantidad a producir del producto "+p.name+": "+str(optimal[i]),padx=20,pady=20).grid(row=i)
                     self.center(w,True)
                     w.wait_window()
                 else:
