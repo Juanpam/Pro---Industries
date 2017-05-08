@@ -8,14 +8,23 @@ class material():
         self.childrenRequired = [] #children required by parent
         self.available = available
         self.required = required
+        self.parent = None
         self.netRequirement = self.required - self.available
         if(self.netRequirement < 0):
             self.netRequirement = 0
 
     def addChild(self, child, requiredByParent):
         if(child not in self.children):
+            child.parent=self
             self.children.append(child)
             self.childrenRequired.append(requiredByParent)
+        return self
+
+    def delChild(self, child):
+        if(child in self.children):
+            index = self.children.index(child)
+            self.children.pop(index)
+            self.childrenRequired.pop(index)
         return self
 
     def updateRequirements(self):
@@ -27,8 +36,6 @@ class material():
                 #print(self.required,self.childrenRequired[i],c.name)
                 c.required = self.netRequirement * self.childrenRequired[i]
                 c.updateRequirements()
-
-
 
 
     def updateTotalDuration(self):
@@ -56,11 +63,34 @@ class material():
                 for i in range(indexOffset,self.totalDuration-self.duration):
                     partialWeeks[i] = partialWeeks[i] + partialWeeksChild[i-indexOffset] 
                 #print(self.name,partialWeeks,partialWeeksChild,indexOffset,self.totalDuration-self.duration)
-            partialWeeks = partialWeeks + [[(self.name,self.required)]]  + [[] for i in range(self.duration-1)]
+            partialWeeks = partialWeeks + [[(self.name,self.required,self.available)]]  + [[] for i in range(self.duration-1)]
             return partialWeeks
         else:
             #print(self.name, "hoja")
-            return [[(self.name,self.required)]]+[[] for i in range(self.totalDuration-1)]
+            return [[(self.name,self.required,self.available)]]+[[] for i in range(self.totalDuration-1)]
+
+    def getNetRequirementsEachWeek(self):
+        requirementsWeek = self.getRequirementsEachWeek()
+        netRequirementsWeek = [[] for i in range(len(requirementsWeek))]
+        availablesLeft = []
+        for i,w in enumerate(requirementsWeek):
+            for p in w:
+                if p[0] not in [a[0] for a in availablesLeft]:
+                    netRequirement = p[1]-p[2]
+                    if(netRequirement <0):
+                        netRequirement=0
+                    availablesLeft.append((p[0], p[2]-(p[1]-netRequirement))) #Here is stored how many availables are still unused
+                    #print(availablesLeft)
+                    netRequirementsWeek[i].append((p[0],p[1],p[2],netRequirement))
+                else:
+                    index = [a[0] for a in availablesLeft].index(p[0])
+                    netRequirement = p[1]-availablesLeft[index][1]
+                    if(netRequirement <0):
+                        netRequirement=0
+                    availablesLeft[index]=(p[0], availablesLeft[index][1]-(p[1]-netRequirement)) #Here is updated how many availables are still unused
+                    #print(availablesLeft)
+                    netRequirementsWeek[i].append((p[0],p[1],availablesLeft[index][1],netRequirement))
+        return netRequirementsWeek
 
 
 
@@ -79,22 +109,28 @@ class material():
         return hash(self.name)
 
 
-m1=material("Vibes", 1, required=50, available=10)
-b=material("B", 2 ,15)
-c=material("C", 1, 20)
-d=material("D", 1, 10)
-e1=material("E", 2, 10)
-e2=material("E", 2, 10)
-f=material("F", 3, 5)
-g=material("G", 2, 0)
-d2=material("D", 1, 10)
+# m1=material("Vibes", 1, required=50, available=10)
+# b=material("B", 2 ,15)
+# c=material("C", 1, 20)
+# d=material("D", 1, 10)
+# e1=material("E", 2, 10)
+# e2=material("E", 2, 10)
+# f=material("F", 3, 5)
+# g=material("G", 2, 0)
+# d2=material("D", 1, 10)
 
-m1.addChild(b.addChild(d, 2).addChild(e1,2),2).addChild(c.addChild(e2,2).addChild(f.addChild(g,1).addChild(d2,2),2),3)
-m1.updateTotalDuration()
-#print(m1.totalDuration)
-#m1.updateRequirements()
-#print(d2.totalDuration)
-#print(m1.getRequirementsEachWeek())
+# m1.addChild(b.addChild(d, 2).addChild(e1,2),2).addChild(c.addChild(e2,2).addChild(f.addChild(g,1).addChild(d2,2),2),3)
+# m1.updateTotalDuration()
+# #print(m1.totalDuration)
+# m1.updateRequirements()
+# print(d2.totalDuration)
+# print(m1.getRequirementsEachWeek())
+# print(m1.getNetRequirementsEachWeek())
+# print(e1.totalDuration,e1.netRequirement)
+# print(e2.totalDuration,e2.netRequirement)
+# m1.updateRequirements()
+# print(c.netRequirement)
+# print(c.parent)
 
 
 

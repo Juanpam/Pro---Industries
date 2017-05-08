@@ -150,8 +150,6 @@ class module (tk.Frame):
         elif(modNumber==2):
             #Creacion de widgets para el segundo módulo
 
-
-
             #Dynamic variable for the filename
             self.fileName = tk.StringVar(value="Nombre de archivo: ")
             if(self.filePath):
@@ -247,6 +245,7 @@ class module (tk.Frame):
         elif(modNumber==3):
 
             self.materials=[]
+            self.indexMaterialsItems = {}
 
             #Conf of expansion
             self.columnconfigure(0,weight=2)
@@ -261,14 +260,123 @@ class module (tk.Frame):
             confTreeGrid = {"sticky": tk.N+tk.E+tk.S+tk.W}
             confButtonGrid = {"sticky": tk.N+tk.S}
 
-            #Add element   
+            #Add element
+
+            def createMaterial(name,duration,available,required,parentIndexItem):
+                material=st.material(name,duration,available,required)
+                if(material not in self.materials): #if the material is not yet in the list we only add it
+                    self.materials.append(material)
+                    self.indexMaterialsItems[name]=len(self.materials)-1
+                else: #If the material is already in the list we count how many materials of the same type are there and the counter is added to the index
+                    self.materials.append(material) 
+                    count = self.materials.count(material)
+                    self.indexMaterialsItems[name+str(count+1)]=len(self.materials)-1
+                parent=None
+                if(parentIndexItem!=""): #If there is a parent we search it using the dictionary
+                    parent=self.materials[self.indexMaterialsItems[parentIndexItem]]   
+                updateMaterialsTree("create",material=material,parent=parent)
+
+
+            def addMaterial():
+                
+                """
+                Adds element to the list of products and machines
+                """
+                #Create modal dialog
+                w = self.modalDialog("Agregar material")
+
+                frame = tk.Frame(w)
+                frame.grid(row=0,column=0,columnspan=2,padx=10,pady=10)
+
+                #Conf expansion
+
+                frame.columnconfigure(0,weight=1)
+                frame.columnconfigure(1,weight=1)
+                confLabel = {"column":0,"sticky":tk.E+tk.W,"pady":10}
+                confEntry = {"column":1,"sticky":tk.E+tk.W,"pady":10}
+
+                name = tk.StringVar()
+                tk.Label(frame,text="Nombre del material: ").grid(confLabel,row=0)
+                tk.Entry(frame,textvariable=name).grid(confEntry,row=0)
+
+                duration = tk.IntVar()
+                tk.Label(frame,text="Duracion: ").grid(confLabel,row=1)
+                tk.Entry(frame,textvariable=duration).grid(confEntry,row=1)
+
+                available = tk.IntVar()
+                tk.Label(frame,text="Inventario actual: ").grid(confLabel,row=2)
+                tk.Entry(frame,textvariable=available).grid(confEntry,row=2)
+
+
+                required = tk.IntVar()
+                parent = tk.StringVar()
+                requiredByParent = tk.IntVar()
+
+                if (self.tree.get_children()):
+                    tk.Label(frame,text="Requeridos por el padre: ").grid(confLabel,row=4)
+                    tk.Entry(frame,textvariable=requiredByParent).grid(confEntry,row=4)
+
+                    tk.Label(frame,text="Padre: ").grid(confLabel,row=5)
+                    tk.Entry(frame,textvariable=parent).grid(confEntry,row=5)
+
+                else:
+                    tk.Label(frame,text="Requeridos: ").grid(confLabel,row=3)
+                    tk.Entry(frame,textvariable=required).grid(confEntry,row=3)
+
+                tk.Button(frame,text="Crear", command = lambda : createMaterial(name.get(), duration.get(), available.get(), required.get(),parent.get())).grid(confLabel,row=5)
+                tk.Button(frame,text="Cancelar",command=w.winfo_toplevel().destroy).grid(confEntry,row=5)
+                self.center(w,True)
+                w.wait_window()
+
+            def delMaterial(items,recursive=False):
+
+                #print(name, recursive)
+                if(not recursive):
+                    #print(name,type(name))
+                    if(items and type(items) is tuple):
+                        #print(self.products, self.materials, "antes")
+                        for i in items:
+                            if(self.tree.exists(i)):
+                                self.delElement(self.tree.get_children(i),True)
+                                if(i in self.indexMaterialsItems.keys()):
+                                    index = self.indexMaterialsItems[i]
+                                    #print(i, "antes de morir")
+                                    parent = self.materials[index].parent
+                                    if(parent):
+                                        parent.delChild(self.materials[index])
+                                    self.materials.pop(index)
+                                    for j in self.indexMaterialsItems.keys():
+                                        if self.indexMaterialsItems[j]>index:
+                                            self.indexMaterialsItems[j]=self.indexMaterialsItems[j]-1
+                                    self.indexMaterialsItems.pop(i)
+                                #print(self.products, self.materials, "despues")
+                                #print(i, "itemId")
+                                updateMaterialsTree("delete", material=st.material(i, 0))
+                else:
+                    if(items and type(items) is tuple):
+                        for i in items:
+                            self.delElement(self.tree.get_children(i),True)
+                            if(i in self.indexMaterialsItems.keys()):
+                                index = self.indexMaterialsItems[i]
+                                #print(i, "antes de morir")
+                                parent = self.materials[index].parent
+                                if(parent):
+                                        parent.delChild(self.materials[index])
+                                self.materials.pop(index)
+                                for j in self.indexMaterialsItems.keys():
+                                    if self.indexMaterialsItems[j]>index:
+                                        self.indexMaterialsItems[j]=self.indexMaterialsItems[j]-1
+                                self.indexMaterialsItems.pop(i)
+
+
+
             addMaterialButton = tk.Button(
-            self, text="Agregar material",command=lambda :self.addMaterial)
+            self, text="Agregar material",command = addMaterial)
             addMaterialButton.grid(confTreeGrid,row=0,column=0)
 
             #Delete element
             delMaterialButton = tk.Button(
-            self, text="Borrar material seleccionado",command=lambda : self.delMaterial(self.tree.selection()))
+            self, text="Borrar material seleccionado",command=lambda : delMaterial(self.tree.selection()))
             delMaterialButton.grid(confTreeGrid,row=1,column=0)
 
             #Net requirements button
@@ -276,9 +384,41 @@ class module (tk.Frame):
             self, text="Mostrar Requerimientos Netos de Materiales",command= lambda: 5)
             netRButton.grid(confTreeGrid,row=0,column=1,rowspan=2)
 
+            #Tree view
 
-            def
 
+            def updateMaterialsTree(action,material=None,parent=None):
+                parentIndex=""
+                requiredByParent = 0
+                if(action=="create"):
+                    if(parent): #If there is a parent, the index is the parent name, the required by parent is obtained
+                        parentIndex = parent.name
+                        childIndex = material.parent.children.index(material)
+                        requiredByParent = material.parent.childrenRequired[childIndex]
+                    count = self.materials.count(material)
+                    itemName = material.name
+                    if(count > 1): #If there is more than one material with the same name on the three a counter is added to the item id
+                        itemName = itemName + str(count)
+
+                    self.tree.insert(parentIndex, "end", itemName,text=material.name, values=(material.duration,material.available,material.required,requiredByParent))
+                elif(action=="delete"):
+                    self.tree.delete(material.name)
+
+            
+            columns = ["Duracion","Disponibilidad Inicial","Requerimiento bruto", "Requeridos por el padre"]
+            self.tree = ttk.Treeview(self,columns=columns)
+
+            for i in columns:
+                self.tree.column(i,width=50)
+                self.tree.heading(i,text=i)
+            self.tree.heading("#0",text="Nombre del material")
+            
+
+            self.tree.grid(confTreeGrid,row=2,column=0,columnspan=2)
+            self.winfo_toplevel().geometry("")
+
+
+            
 
 
         elif(modNumber==4):
@@ -344,9 +484,6 @@ class module (tk.Frame):
             self.tree.grid(confTreeGrid,row=2,column=0,columnspan=2)
             self.winfo_toplevel().geometry("")
 
-
-
-        pass
 
     def addElement(self):
         """
@@ -570,9 +707,6 @@ class module (tk.Frame):
                 #print("deleting")
                 self.tree.delete(machine.name)
         #print(self.indexMachinesItems,self.indexProductsItems,"despues de cualquier modificacion")
-
-    def updateMaterialTree:
-        pass
 
     def genGraph(self,path):
         if(path):
