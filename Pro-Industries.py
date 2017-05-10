@@ -606,6 +606,14 @@ class module (tk.Frame):
 
                     names.pop(names.index(root.name))
                     names=[root.name] + names
+
+                    def getAllItems(child=""):
+                            children = self.tree.get_children(child)
+                            for child in children:
+                                children += getAllItems(child)
+                            return children
+
+                    names=[self.tree.item(i)['text'] for i in getAllItems()]
                     
                     root.updateTotalDuration()
                     weeksRemaining = len(data)
