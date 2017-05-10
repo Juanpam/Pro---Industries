@@ -57,17 +57,29 @@ class material():
             partialWeeks = [[] for i in range(self.totalDuration-self.duration)]
             #print(self.name, self.totalDuration,partialWeeks,"padre")
             for c in self.children:
-                indexOffset=(self.totalDuration-self.duration)-c.totalDuration
+                #indexOffset=(self.totalDuration-self.duration)-c.totalDuration
                 partialWeeksChild=c.getRequirementsEachWeek()
-                #print(self.name,partialWeeks,partialWeeksChild,indexOffset,self.totalDuration-self.duration)
-                for i in range(indexOffset,self.totalDuration-self.duration):
-                    partialWeeks[i] = partialWeeks[i] + partialWeeksChild[i-indexOffset] 
-                #print(self.name,partialWeeks,partialWeeksChild,indexOffset,self.totalDuration-self.duration)
-            partialWeeks = partialWeeks + [[(self.name,self.required,self.available)]]  + [[] for i in range(self.duration-1)]
+                extraQuantity=((c.duration-1)+len(partialWeeksChild))-(self.totalDuration-self.duration)
+                extraQuantityForChild = -extraQuantity
+                
+                extraParent = [[] for i in range(extraQuantity)]
+                extraChild = [[] for i in range(extraQuantityForChild)]
+                #print(extraQuantity, extraParent, extraQuantityForChild, extraChild)
+                #print("antes",partialWeeks)
+                partialWeeks = extraParent + partialWeeks
+                #print("despues",partialWeeks)
+                partialWeeksChild = extraChild + partialWeeksChild
+                #print(self.name,partialWeeks,partialWeeksChild,self.totalDuration-self.duration)
+                for i in range(len(partialWeeksChild)):
+                    partialWeeks[i] = partialWeeks[i] + partialWeeksChild[i] 
+                #print(self.name,partialWeeks,partialWeeksChild,self.totalDuration-self.duration)
+                if(extraQuantity>0):
+                    partialWeeks = partialWeeks[extraQuantity:]
+            partialWeeks = partialWeeks +  [[(self.name,self.required,self.available)]]
             return partialWeeks
         else:
             #print(self.name, "hoja")
-            return [[(self.name,self.required,self.available)]]+[[] for i in range(self.totalDuration-1)]
+            return [[] for i in range(self.totalDuration-1)] + [[(self.name,self.required,self.available)]] 
 
     def getNetRequirementsEachWeek(self):
         requirementsWeek = self.getRequirementsEachWeek()
@@ -91,6 +103,18 @@ class material():
                     #print(availablesLeft)
                     netRequirementsWeek[i].append((p[0],p[1],availablesLeft[index][1],netRequirement))
         return netRequirementsWeek
+
+
+    def getMaterialsNames(self):
+        names = [self.name]
+        if(not self.children):
+            return names
+        else:
+            for c in self.children:
+                names += c.getMaterialsNames()
+                names += [c.name]
+            names = list(set(names))
+            return names
 
 
 
@@ -123,8 +147,8 @@ class material():
 # m1.updateTotalDuration()
 # #print(m1.totalDuration)
 # m1.updateRequirements()
-# print(d2.totalDuration)
-# print(m1.getRequirementsEachWeek())
+# # print(d2.totalDuration)
+# # print(m1.getRequirementsEachWeek())
 # print(m1.getNetRequirementsEachWeek())
 # print(e1.totalDuration,e1.netRequirement)
 # print(e2.totalDuration,e2.netRequirement)

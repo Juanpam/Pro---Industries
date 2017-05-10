@@ -8,6 +8,7 @@ class machine():
         self.__updated = False
         self.name = name
         self.duration = duration
+        self.parent = None
         self.disponibility = disponibility
         self.quantity = quantity
         if(not children):
@@ -19,8 +20,15 @@ class machine():
 
     def addChildren(self, machine):
         self.children.append(machine)
+        machine.parent=self
         self.__updated = False
         self.kind = "machine"
+        return self
+
+    def delChild(self, child):
+        if(child in self.children):
+            index = self.children.index(child)
+            self.children.pop(index)
         return self
 
 

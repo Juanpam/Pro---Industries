@@ -90,16 +90,33 @@ def getInventory(data, MPS, initial=0, pronostic=None, weeks=12, alpha = random.
         else:
             actualMPS = 0
 
-        if(actualMPS == 0): #DPP
-            DPP.append(0)
-        else:
-            if(i==0): #First week
-                DPP.append((lastInventory + actualMPS)-data[i])
-            else:
-                DPP.append(actualMPS - data[i])
         inventories.append((lastInventory + actualMPS) - maxi)
         MPSList.append(actualMPS)
         lastInventory=inventories[-1]
+
+    for i in range(len(pronostic)):    
+        if(i==0): #First week
+            actualMPS = initial + MPSList[i]
+        else:
+            actualMPS=MPSList[i]
+        if(actualMPS == 0): #DPP
+            DPP.append(0)
+        else:
+            totalOrder = data[i]
+            j=i+1 #Actual index
+            while(j<len(MPSList) and MPSList[j]==0):
+                totalOrder = totalOrder+data[j]
+                j=j+1
+            DPP.append(actualMPS - totalOrder)
+
+    for i in range(len(DPP)-1,-1,-1):
+        if(DPP[i] < 0):
+            for j in range(i-1,-1,-1):
+                if(DPP[j]>0):
+                    DPP[j]=DPP[j]+DPP[i]
+                    DPP[i]=0
+
+
     return (inventories, MPSList, DPP)
 
 #genGraph(readData(("csvTest.csv")))
