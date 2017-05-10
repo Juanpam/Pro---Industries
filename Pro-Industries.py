@@ -28,6 +28,7 @@ class Application(tk.Frame):
     logoPath = fs.resource_path("Settings.png")
     autor1 = "Luis Ernesto Perafan Chacón"
     autor2 = "Sergio Cordoba"
+    realAutor = "Juan Pablo Méndez"
     versionNumber = "1.0"
     pronostic = []
 
@@ -100,7 +101,7 @@ class Application(tk.Frame):
 
     def open_about(self):
         winsound.PlaySound(fs.resource_path('shingeki-no-kyojin-the-armored.wav'), winsound.SND_ALIAS | winsound.SND_ASYNC)
-        tk.messagebox.showinfo("Acerca de","Desarrollado por:\n\n" + self.autor1 + "\n\ny\n\n" + self.autor2 + "\n\nVersión "+ self.versionNumber)
+        tk.messagebox.showinfo("Acerca de","Desarrollado por:\n\n"+self.realAutor+"\n\npara\n\n"+ self.autor1 + "\n\ny\n\n" + self.autor2 + "\n\nVersión "+ self.versionNumber)
         winsound.PlaySound(None, winsound.SND_ALIAS | winsound.SND_ASYNC)
 
     def initiateModule(self,modNumber):
