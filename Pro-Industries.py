@@ -495,14 +495,16 @@ class module (tk.Frame):
 
                 required = tk.IntVar()
                 parent = tk.StringVar()
-                requiredByParent = tk.IntVar()
+                requiredByParent = tk.DoubleVar()
 
-                def updateWindow():                    
+                def updateWindow():
+
                     if (self.tree.get_children()):
-                        tk.Label(frame,text="Requeridos por el padre: ").grid(confLabel,row=4)
-                        tk.Entry(frame,textvariable=requiredByParent).grid(confEntry,row=4)
+                        tk.Label(frame,text="Requeridos por el padre: ").grid(confLabel,row=3)
+                        tk.Entry(frame,textvariable=requiredByParent).grid(confEntry,row=3)
+                        required.set(0)
 
-                        tk.Label(frame,text="Padre: ").grid(confLabel,row=5)
+                        tk.Label(frame,text="Padre: ").grid(confLabel,row=4)
                         combo = ttk.Combobox(frame,justify=tk.CENTER,textvariable=parent,state="readonly",width=30)
 
                         def getAllItems(child=""):
@@ -515,7 +517,7 @@ class module (tk.Frame):
                         combo['values']=values
                         for v in values:
                             self.tree.see(v)
-                        combo.grid(confEntry,row=5)
+                        combo.grid(confEntry,row=4)
 
                     else:
                         tk.Label(frame,text="Requeridos: ").grid(confLabel,row=3)
@@ -679,8 +681,10 @@ class module (tk.Frame):
             def updateMaterialsTree(action,material=None,parent=None):
                 parentIndex=""
                 requiredByParent = 0
+                required = material.required
                 if(action=="create"):
                     if(parent): #If there is a parent, the index is the parent name, the required by parent is obtained
+                        required = ""
                         parentIndex = parent.name
                         childIndex = material.parent.children.index(material)
                         requiredByParent = material.parent.childrenRequired[childIndex]
@@ -689,7 +693,7 @@ class module (tk.Frame):
                     if(count > 1): #If there is more than one material with the same name on the three a counter is added to the item id
                         itemName = itemName + str(count)
 
-                    self.tree.insert(parentIndex, "end", itemName,text=material.name, values=(material.duration,material.available,material.required,requiredByParent))
+                    self.tree.insert(parentIndex, "end", itemName,text=material.name, values=(material.duration,material.available,required,requiredByParent))
                 elif(action=="delete"):
                     self.tree.delete(material.name)
 
@@ -754,8 +758,31 @@ class module (tk.Frame):
                 if(len(self.products)>1):
                     w=self.modalDialog("Combinacion optima")
                     optimal = mc.optimalCombination(*self.products)
+                    profitTime = mc.profitableTime(*self.products)
+                    bottleNeck = mc.bottleNeck(*self.products)[0][0]
+
+                    
                     for i,p in enumerate(self.products):
-                        tk.Label(w,text="Cantidad de producto "+p.name+": "+str(optimal[i]),padx=40).grid(row=i)
+                        tk.Label(w,text=p.name,padx=40).grid(row=0,column=1+i,sticky=tk.E+tk.W,pady=10)
+
+                    confLabel = {"column":0,"sticky":tk.E+tk.W,"pady":10}
+
+                    tk.Label(w,text="Precio de venta: ").grid(cnf=confLabel)
+                    tk.Label(w,text="Costo de materias primas: ").grid(cnf=confLabel)
+                    tk.Label(w,text="Utilidad neta: ").grid(cnf=confLabel)
+                    tk.Label(w,text="Tiempo (cuello de botella): ").grid(cnf=confLabel)
+                    tk.Label(w,text="$/min: ").grid(cnf=confLabel)
+                    tk.Label(w,text="Cantidad óptima: ").grid(cnf=confLabel)
+
+                    rowOffset = 1
+                    for i,p in enumerate(self.products):
+                        tk.Label(w,text=str(p.priceUnit),padx=40).grid(row=rowOffset,column=1+i,sticky=tk.E+tk.W,pady=10)
+                        tk.Label(w,text=str(p.rawMaterials[0][1]),padx=40).grid(row=1+rowOffset,column=1+i,sticky=tk.E+tk.W,pady=10)
+                        tk.Label(w,text=str(p.getNetProfit()),padx=40).grid(row=2+rowOffset,column=1+i,sticky=tk.E+tk.W,pady=10)
+                        tk.Label(w,text=str(bottleNeck[i]),padx=40).grid(row=3+rowOffset,column=1+i,sticky=tk.E+tk.W,pady=10)
+                        tk.Label(w,text=str(profitTime[i][1]),padx=40).grid(row=4+rowOffset,column=1+i,sticky=tk.E+tk.W,pady=10)
+                        tk.Label(w,text=str(optimal[i]),padx=40).grid(row=5+rowOffset,column=1+i,sticky=tk.E+tk.W,pady=10)
+                    
                     self.center(w,True)
                     w.wait_window()
                 else:
@@ -817,17 +844,21 @@ class module (tk.Frame):
         tk.Entry(w,textvariable=name).grid(confEntry,row=0)
         if(kind.get()=="Producto"):
             tk.Label(w,text="Demanda: ").grid(confLabel,row=1)
-            tk.Label(w,text="Precio por unidad: ").grid(confLabel,row=2)
+            tk.Label(w,text="Precio de venta por unidad: ").grid(confLabel,row=2)
+            tk.Label(w,text="Costo total de materia prima: ").grid(confLabel,row=3)
 
             
             #In case of a product
             demand = tk.IntVar()
             priceUnit = tk.IntVar()
+            costMaterials = tk.DoubleVar()
+
             tk.Entry(w,textvariable=demand).grid(confEntry,row=1)
             tk.Entry(w,textvariable=priceUnit).grid(confEntry,row=2)
+            tk.Entry(w,textvariable=costMaterials).grid(confEntry,row=3)
 
-            tk.Button(w,text="Crear", command = lambda: self.createProduct(name.get(), demand.get(), priceUnit.get()) ).grid(confLabel,row=3)
-            tk.Button(w,text="Cancelar",command=w.winfo_toplevel().destroy).grid(confEntry,row=3)
+            tk.Button(w,text="Crear", command = lambda: self.createProduct(name.get(), demand.get(), priceUnit.get(), costMaterials.get()) ).grid(confLabel,row=4)
+            tk.Button(w,text="Cancelar",command=w.winfo_toplevel().destroy).grid(confEntry,row=4)
 
         elif(kind.get()=="Máquina"):
             tk.Label(w,text="Duracion: ").grid(confLabel,row=1)
@@ -904,8 +935,9 @@ class module (tk.Frame):
         w.iconbitmap(self.iconPath)
         return w
 
-    def createProduct(self,name,demand,priceUnit):
+    def createProduct(self,name,demand,priceUnit,cost):
         product=mc.product(name, demand, priceUnit)
+        product.addRawMaterial("Materiales", cost)
         if(product not in self.products):
             self.products.append(product)
             self.indexProductsItems[name]=len(self.products)-1
@@ -997,9 +1029,11 @@ class module (tk.Frame):
                     #print(self.tree.get_children(), "items arbol")
                     #print(machine.name+str(count), "id")
                    # print(parentId, "parentId")
-                    self.tree.insert(parentId,"end", machine.name+str(count),text=machine.name, values=("", "", machine.duration, machine.disponibility, machine.quantity))
+                    self.tree.insert(parentId,"end", machine.name+str(count),text=machine.name+str(count), values=("", "", machine.duration, machine.disponibility, machine.quantity))
+                    self.tree.see(machine.name+str(count))
                 else:
                     self.tree.insert(parentId,"end", machine.name,text=machine.name, values=("", "", machine.duration, machine.disponibility, machine.quantity))
+                    self.tree.see(machine.name)
         elif(action=="delete"):
                 #print("deleting")
                 self.tree.delete(machine.name)

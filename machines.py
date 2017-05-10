@@ -53,11 +53,11 @@ class machine():
                     found = False
                     for l,k in enumerate(self.__childrenDuration):
                         if j.name==k.name:
-                            self.__childrenDuration[l] = machine(j.name, k.duration+j.duration, j.disponibility)
+                            self.__childrenDuration[l] = machine(j.name, k.duration+j.duration, j.disponibility, j.quantity)
                             found = True
                             break
                     if(not found):
-                        self.__childrenDuration.append(machine(j.name, j.duration, j.disponibility))
+                        self.__childrenDuration.append(machine(j.name, j.duration, j.disponibility, j.quantity))
                     #print("lala",self.__childrenDuration)
         self.__childrenDuration.sort(key = lambda x: x.name)
         self.__updated = True
@@ -155,7 +155,7 @@ def productsPercTime(*products):
     return total
 
 def bottleNeck(*products):
-    bottleNeckList = [i for i in productsPercTime(*products) if i[1]>100]
+    bottleNeckList = [i if i[1]>100 else max(productsPercTime(*products), key = lambda x : x[1]) for i in productsPercTime(*products)]
     bottleNeckList = [([p.getChildDuration(b[0]) for p in products], b[1],b[0]) for b in bottleNeckList]
     return bottleNeckList
 
@@ -173,15 +173,17 @@ def optimalCombination(*products):
     bn =bottleNeck(*products)
     bnmachine = bn[0][2]
     disponibility = bnmachine.disponibility
+    quantity = bnmachine.quantity
+    disponibility = disponibility * quantity
     opList = sorted(profitableTime(*products), key = lambda x: x[1], reverse=True)
-    print(opList)
+    #print(bnmachine)
     while(opList and disponibility>0):
         op=opList[0]
         p=op[0]
         ans.append((p, min((disponibility, p.demand*p.getChildDuration(bnmachine)))))
         opList.remove(op)
         disponibility = disponibility - min(disponibility, p.demand*p.getChildDuration(bnmachine))
-        print(opList)
+        #print(opList)
     ans = [a[1] for a in ans]
     ans = [ans[i] // bn[0][0][i] for i in range(len(ans))]
     return ans
@@ -206,6 +208,29 @@ def optimalCombination(*products):
 # c2 = machine("c", 5, 2400)
 # d = machine("d", 10, 2400)
 # d2 = machine("d", 5, 2400)
+
+
+# choc = product("Chocolate", 170, 400)
+# coc = product("Coco", 170, 300)
+# choc.addRawMaterial("Materials", 67)
+# coc.addRawMaterial("Materials", 57)
+
+
+# horno1 = machine("Horno", 20, 2000, 2)
+# horno2 = machine("Horno", 15, 2000, 2)
+
+# bat1 = machine("Batidora", 12, 2000, 2)
+# bat2 = machine("Batidora", 8, 2000, 2)
+
+# choc.addChildren(horno1.addChildren(bat1))
+# coc.addChildren(horno2.addChildren(bat2))
+
+
+# print(productsTotalTime(choc,coc))
+# print(productsPercTime(choc,coc))
+# print(bottleNeck(choc,coc))
+# print(profitableTime(choc,coc))
+# print(optimalCombination(choc,coc))
 
 # p.addChildren(d.addChildren(c.addChildren(a)).addChildren(c2.addChildren(b)))
 # q.addChildren(d2.addChildren(c2).addChildren(b2.addChildren(a2)))
